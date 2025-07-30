@@ -1,1 +1,120 @@
+"""
+Utility functions for enhanced SJF Non-Preemptive Scheduling
 
+These functions are designed to be imported into sjf_non_preemptive.py
+or similar scripts, and provide:
+1. Idle time and Gantt chart representation (with 'IDLE' in chart)
+2. Stable tie-breaking for orders arriving at the same time
+3. Extended SJF result statistics and structure
+"""
+
+from typing import List, Tuple, Dict, Any
+
+# Type alias for clarity
+Order = Tuple[str, int, int]
+
+def stable_sort_orders(orders: List[Order]) -> List[Order]:
+    """
+    Sorts orders by arrival time, burst time, and OrderID for stable scheduling.
+    """
+    return sorted(orders, key=lambda x: (x[1], x[2], x[0]))
+
+def sjf_non_preemptive_with_idle(
+    orders: List[Order]
+) -> Tuple[List[Dict[str, Any]], List[str], Dict[str, float]]:
+    """
+    Simulates Non-Preemptive SJF Scheduling with:
+    - Idle time representation in the Gantt chart ("IDLE" marker)
+    - Stable tie-breaking (arrival time, burst time, OrderID)
+    - Returns extended statistics
+
+    Returns:
+        - completed: List of detailed order execution info
+        - gantt_chart: Execution order (with 'IDLE' for idle periods)
+        - stats: Dict with average waiting, turnaround, CPU utilization, total idle time, throughput
+    """
+
+    # Step 1: Stable initial sort
+    orders = stable_sort_orders(orders)
+    orders_copy = orders.copy()  # For throughput calculation
+
+    time = 0
+    completed = []
+    ready_queue = []
+    gantt_chart = []
+    total_idle = 0
+
+    while orders or ready_queue:
+        # Add all orders arrived by current time to the ready queue
+        while orders and orders[0][1] <= time:
+            ready_queue.append(orders.pop(0))
+
+        if ready_queue:
+            # Stable sort by burst time, then OrderID (arrival already same)
+            ready_queue.sort(key=lambda x: (x[2], x[0]))
+
+            current = ready_queue.pop(0)
+
+            # If CPU was idle before this job
+            if time < current[1]:
+                idle_duration = current[1] - time
+                gantt_chart.extend(["IDLE"] * idle_duration)
+                total_idle += idle_duration
+                time = current[1]
+
+            start_time = time
+            time += current[2]
+            end_time = time
+
+            completed.append({
+                "OrderID": current[0],
+                "ArrivalTime": current[1],
+                "BurstTime": current[2],
+                "StartTime": start_time,
+                "EndTime": end_time,
+                "WaitingTime": start_time - current[1],
+                "TurnaroundTime": end_time - current[1]
+            })
+            gantt_chart.extend([current[0]] * current[2])  # Show each time unit in Gantt chart
+        else:
+            # CPU is idle, no job ready
+            gantt_chart.append("IDLE")
+            time += 1
+            total_idle += 1
+
+    # Stats
+    n = len(completed)
+    total_wt = sum(order['WaitingTime'] for order in completed)
+    total_tat = sum(order['TurnaroundTime'] for order in completed)
+    makespan = completed[-1]['EndTime'] - completed[0]['StartTime'] if n else 0
+    total_burst = sum(order[2] for order in orders_copy)
+    cpu_util = (total_burst / (total_burst + total_idle)) * 100 if total_burst + total_idle > 0 else 0
+    throughput = n / (completed[-1]['EndTime'] - completed[0]['StartTime']) if n > 1 else 0
+
+    stats = {
+        "AverageWaitingTime": total_wt / n if n else 0,
+        "AverageTurnaroundTime": total_tat / n if n else 0,
+        "CPUUtilizationPercent": cpu_util,
+        "TotalIdleTime": total_idle,
+        "Throughput": throughput
+    }
+
+    return completed, gantt_chart, stats
+
+def print_gantt_chart(gantt_chart: List[str]):
+    """
+    Prints the Gantt chart with IDLE periods shown.
+    """
+    print("🟩 Gantt Chart (with idle periods):")
+    print(" | ".join(gantt_chart))
+
+def print_stats(stats: Dict[str, float]):
+    """
+    Prints the extended statistics.
+    """
+    print(f"\n📈 SJF Scheduling Statistics:")
+    print(f"Average Waiting Time     : {stats['AverageWaitingTime']:.2f}")
+    print(f"Average Turnaround Time  : {stats['AverageTurnaroundTime']:.2f}")
+    print(f"CPU Utilization (%)      : {stats['CPUUtilizationPercent']:.2f}")
+    print(f"Total Idle Time          : {stats['TotalIdleTime']}")
+    print(f"Throughput (orders/unit) : {stats['Throughput']:.4f}")
