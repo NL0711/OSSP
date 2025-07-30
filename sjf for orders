@@ -44,7 +44,6 @@ def sjf_scheduler(orders):
             results[current_order[0]] = {
                 "burst_time": shortest_order[1],
                 "arrival_time": shortest_order[2],
-                "start_time": start_time,
                 "completion_time": completion_time,
                 "turnaround_time": completion_time - shortest_order[2],
                 #wait time = turn around time - burst time
@@ -55,16 +54,62 @@ def sjf_scheduler(orders):
 
     return results
 
+def preemptive_sjf_scheduler(orders):
+    time = 0
+    ready_queue = []
+    results = {}
+    remaining_orders = {order[0]: order[1] for order in orders}  #dict comprehension: k,v = order, burst time
+
+    while remaining_orders:
+
+        for order in orders:
+            if order[2] <= time and order[0] in remaining_orders:
+                ready_queue.append(order)
+
+        if ready_queue:
+          
+            shortest_order = ready_queue[0]
+
+            #shortest order in the remaining queue that is ready 
+            for order in ready_queue:
+                if remaining_orders[order[0]] < remaining_orders[shortest_order[0]]:
+                    shortest_order = order
+            
+            #decrement all other remaining orders by 1 aka current order will run for 1 time unit
+            remaining_orders[shortest_order[0]] -= 1
+            
+            #check if any orders are completed after every 1 time unit
+            if remaining_orders[shortest_order[0]] == 0:
+                
+                completion_time = time + 1
+                results[shortest_order[0]] = {
+                    "burst_time": shortest_order[1],
+                    "arrival_time": shortest_order[2],
+                    "completion_time": completion_time,
+                    "turnaround_time": completion_time - shortest_order[2],
+                    "wait_time": (completion_time - shortest_order[2]) - shortest_order[1],
+                }
+
+                ready_queue.remove(shortest_order)
+                remaining_orders.pop(shortest_order[0]) #pops the order id matched with shortest order
+        else:
+            # If no orders are ready, increment time
+            time += 1
+            continue
+
+        time += 1  # Increment time after processing
+
+    return results
 
 def print_results(result):
 
     total_wt = 0
     total_tat = 0
-    print("OrderID\tBurst\tArrival\tStart\tCompletion\tWait\tTurnaround")
+    print("OrderID\tBurst\tArrival\tCompletion\tWait\tTurnaround")
 
     for id, order in result.items():
 
-      print(f"{id}\t{order['burst_time']}\t{order['arrival_time']}\t{order['start_time']}\t{order['completion_time']}\t\t{order['wait_time']}\t{order['turnaround_time']}")
+      print(f"{id}\t{order['burst_time']}\t{order['arrival_time']}\t{order['completion_time']}\t\t{order['wait_time']}\t{order['turnaround_time']}")
     
       total_wt += order["wait_time"]
       total_tat += order["turnaround_time"]
@@ -78,4 +123,7 @@ def print_results(result):
 orders = get_orders()
 sorted_orders = sort_by_arrival_time(orders)
 results = sjf_scheduler(sorted_orders)
-print_results(results)
+results1 = preemptive_sjf_scheduler(sorted_order)
+
+print_results(f"\nUsing SJF:\n {results}")
+print_results(f"\nUsing SRTF:\n {results1}")
