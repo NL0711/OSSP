@@ -10,45 +10,72 @@ def get_orders():
     return orders
 
 def sort_by_arrival_time(orders):
-    # Sort based on Arrival Time
-    return sorted(orders, key=lambda x: x[2])
+    sorted_orders = sorted(orders, key=lambda x: x[2])
+
+    print("\nSorted by arrival time")
+    for order in sorted_orders:
+        print(f"OrderID: {order[0]}, BurstTime: {order[1]}, ArrivalTime: {order[2]}")
+
+    return sorted_orders
 
 def sjf_scheduler(orders):
-    """
-    Input: List of orders as tuples (order_id, arrival_time, burst_time)
-    Output: Execution order + waiting/turnaround times.
-    """
-    # Sort by arrival time, then burst time (SJF non-preemptive)
-    orders_sorted = sorted(orders, key=lambda x: (x[1], x[2]))
-    
-    current_time = 0
-    schedule = []
-    wait_times = []
-    turnaround_times = []
-    
-    for order in orders_sorted:
-        order_id, arrival, burst = order
-        start_time = max(current_time, arrival)
-        wait = start_time - arrival
-        completion = start_time + burst
-        turnaround = completion - arrival
-        
-        schedule.append(order_id)
-        wait_times.append(wait)
-        turnaround_times.append(turnaround)
-        current_time = completion
-    
-    return {
-        "schedule": schedule,
-        "wait_times": wait_times,
-        "turnaround_times": turnaround_times
-    }
 
-def display_orders(orders, title):
-    print(f"\n{title}")
-    for order in orders:
-        print(f"OrderID: {order[0]}, BurstTime: {order[1]}, ArrivalTime: {order[2]}")
+    time = 0
+    ready_queue = []
+    results = {}
+    while orders or ready_queue:
+        
+        #when first order arrives, move it to ready_queue
+        while orders and orders[0][2] <= time:
+            ready_queue.append(orders.pop(0))
+
+        if ready_queue:
+            #sort the ready queue by burst time (Shortest Job First)
+            ready_queue.sort(key=lambda x: x[1])
+
+
+            current_order = ready_queue.pop(0)
+
+            #keep track of time quantum of the order
+            start_time = time
+            time += current_order[1]
+            completion_time = time
+
+            results[current_order[0]] = {
+                "burst_time": current_order[1],
+                "arrival_time": current_order[2],
+                "start_time": start_time,
+                "completion_time": completion_time,
+                "turnaround_time": completion_time - current_order[2],
+                #wait time = turn around time - burst time
+                "wait_time": (completion_time - current_order[2]) - current_order[1], 
+                }
+        else:
+            time += 1
+
+    return results
+
+
+def print_results(result):
+
+    total_wt = 0
+    total_tat = 0
+    print("OrderID\tBurst\tArrival\tStart\tCompletion\tWait\tTurnaround")
+
+    for id, order in result.items():
+
+      print(f"{id}\t{order['burst_time']}\t{order['arrival_time']}\t{order['start_time']}\t{order['completion_time']}\t\t{order['wait_time']}\t{order['turnaround_time']}")
+    
+      total_wt += order["wait_time"]
+      total_tat += order["turnaround_time"]
+    
+    avg_wait = total_wt / len(result)
+    avg_tat = total_tat / len(result)
+
+    print(f"\nAvg Wait Time: {avg_wait}")
+    print(f"Avg Turnaround Time: {avg_tat}")
 
 orders = get_orders()
 sorted_orders = sort_by_arrival_time(orders)
-display_orders(sorted_orders, "Orders sorted by Arrival Time")
+results = sjf_scheduler(sorted_orders)
+print_results(results)
