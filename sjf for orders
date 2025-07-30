@@ -1,17 +1,43 @@
-orders = [[4, 3, 0], [3, 8, 1], [1, 6, 2], [5, 4, 4], [2, 2, 5],]
-
+"""
 ready_queue = []
-
 time = 0
 for order in orders:
-  if order[2] <= time:
-    ready_queue.append(order)
-
+    if order[2] <= time:
+        ready_queue.append(order)
 if ready_queue:
-
-    #sort by shortest burst time
-    for i in range (len(ready_queue)-1):
-      if ready_queue[i][1] > ready_queue[i+1][1]:
-        ready_queue[i], ready_queue[i+1] = ready_queue[i+1], ready_queue[i]
-
+    for i in range(len(ready_queue)-1):
+        if ready_queue[i][1] > ready_queue[i+1][1]:
+            ready_queue[i], ready_queue[i+1] = ready_queue[i+1], ready_queue[i]
 print(ready_queue)
+"""
+
+def get_orders():
+    orders = []
+    n = int(input("Enter the number of orders: "))
+    for i in range(n):
+        print(f"\nEnter details for Order {i + 1}:")
+        order_id = int(input("  Order ID: "))
+        burst_time = int(input("  Burst Time: "))
+        arrival_time = int(input("  Arrival Time: "))
+        orders.append([order_id, burst_time, arrival_time])
+    return orders
+
+def sort_by_arrival_time(orders):
+    # Sort based on Arrival Time
+    return sorted(orders, key=lambda x: x[2])
+
+def display_orders(orders, title):
+    print(f"\n{title}")
+    for order in orders:
+        print(f"OrderID: {order[0]}, BurstTime: {order[1]}, ArrivalTime: {order[2]}")
+
+def main():
+    orders = get_orders()
+    sorted_orders = sort_by_arrival_time(orders)
+    display_orders(sorted_orders, "Orders sorted by Arrival Time")
+
+if __name__ == "__main__":
+    main()
+
+
+
