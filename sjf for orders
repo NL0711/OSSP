@@ -18,13 +18,6 @@ def display_orders(orders, title):
     for order in orders:
         print(f"OrderID: {order[0]}, BurstTime: {order[1]}, ArrivalTime: {order[2]}")
 
-def main():
-    orders = get_orders()
-    sorted_orders = sort_by_arrival_time(orders)
-    display_orders(sorted_orders, "Orders sorted by Arrival Time")
-
-if __name__ == "__main__":
-    main()
-
-
-
+orders = get_orders()
+sorted_orders = sort_by_arrival_time(orders)
+display_orders(sorted_orders, "Orders sorted by Arrival Time")
