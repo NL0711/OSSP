@@ -34,21 +34,21 @@ def sjf_scheduler(orders):
             ready_queue.sort(key=lambda x: x[1])
 
 
-            current_order = ready_queue.pop(0)
+            shortest_order = ready_queue.pop(0)
 
             #keep track of time quantum of the order
             start_time = time
-            time += current_order[1]
+            time += shortest_order[1]
             completion_time = time
 
             results[current_order[0]] = {
-                "burst_time": current_order[1],
-                "arrival_time": current_order[2],
+                "burst_time": shortest_order[1],
+                "arrival_time": shortest_order[2],
                 "start_time": start_time,
                 "completion_time": completion_time,
-                "turnaround_time": completion_time - current_order[2],
+                "turnaround_time": completion_time - shortest_order[2],
                 #wait time = turn around time - burst time
-                "wait_time": (completion_time - current_order[2]) - current_order[1], 
+                "wait_time": (completion_time - shortest_order[2]) - shortest_order[1], 
                 }
         else:
             time += 1
