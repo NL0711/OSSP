@@ -1,0 +1,13 @@
+def print_results(orders, result):
+    print("\nExecution Table")
+    print("Order | Arrival | Burst | Wait | TAT")
+    for i, order in enumerate(orders):
+        order_id, arrival, burst = order
+        wait = result["wait_times"][i]
+        tat = result["turnaround_times"][i]
+        print(f"{order_id} | {arrival} | {burst} | {wait} | {tat}")
+    
+    avg_wait = sum(result["wait_times"]) / len(result["wait_times"])
+    avg_tat = sum(result["turnaround_times"]) / len(result["turnaround_times"])
+    print(f"\nAvg Wait Time: {avg_wait:.1f}")
+    print(f"Avg Turnaround Time: {avg_tat:.1f}")
