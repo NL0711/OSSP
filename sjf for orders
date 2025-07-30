@@ -41,7 +41,7 @@ def sjf_scheduler(orders):
             time += shortest_order[1]
             completion_time = time
 
-            results[current_order[0]] = {
+            results[shortest_order[0]] = {
                 "burst_time": shortest_order[1],
                 "arrival_time": shortest_order[2],
                 "completion_time": completion_time,
@@ -123,7 +123,7 @@ def print_results(result):
 orders = get_orders()
 sorted_orders = sort_by_arrival_time(orders)
 results = sjf_scheduler(sorted_orders)
-results1 = preemptive_sjf_scheduler(sorted_order)
+results1 = preemptive_sjf_scheduler(sorted_orders)
 
 print_results(f"\nUsing SJF:\n {results}")
 print_results(f"\nUsing SRTF:\n {results1}")
