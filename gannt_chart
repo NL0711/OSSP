@@ -1,0 +1,5 @@
+def print_gantt_chart(schedule, burst_times):
+    print("\nGannt Chart (SJF non-preemptive)")
+    for order in schedule:
+        print(f"[{order}]", end="")
+    print("\n" + "-" * (len(schedule) * 5))
